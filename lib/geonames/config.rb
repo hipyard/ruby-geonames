@@ -20,6 +20,7 @@ module Geonames
   class Config
 
     @@default_username  = nil
+    @@default_token     = nil
     @@default_base_url  = "http://ws.geonames.org"
     @@default_lang      = "en"
 
@@ -29,6 +30,14 @@ module Geonames
 
     def username=(username)
       @username = username
+    end
+
+    def token
+      @token || @@default_token
+    end
+
+    def token=(token)
+      @token = token
     end
 
     def base_url

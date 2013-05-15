@@ -43,7 +43,7 @@ module Geonames
       Thread.current[:geonames_config] ||= Geonames::Config.new
     end
 
-    %w(lang username base_url).each do |method|
+    %w(lang username token base_url).each do |method|
       module_eval <<-DELEGATORS, __FILE__, __LINE__ + 1
         def #{method}
           config.#{method}
