@@ -120,7 +120,7 @@ module Geonames
       return intersection
 
     end
-    
+
     def WebService.element_to_country_info(element)
       country_info = Geonames::CountryInfo.new
       country_info.country_code = WebService.get_element_child_text(element, 'countryCode')
@@ -136,14 +136,14 @@ module Geonames
       #actually an array of the available languages
       country_info.languages = WebService.get_element_child_text(element, 'languages').split(",")
       country_info.geoname_id = WebService.get_element_child_int(element, 'geonameId')
-      
+
       north = WebService.get_element_child_float(element, 'bBoxNorth')
       south = WebService.get_element_child_float(element, 'bBoxSouth')
       east = WebService.get_element_child_float(element, 'bBoxEast')
       west = WebService.get_element_child_float(element, 'bBoxWest')
-      
+
       country_info.set_bounding_box(north, south, east, west)
-      
+
       return country_info
     end
 
@@ -255,6 +255,8 @@ module Geonames
       url += "&username=#{Geonames.username}" if Geonames.username
       url += "&token=#{Geonames.token}" if Geonames.token
       url += "&lang=#{Geonames.lang}"
+
+      Rails.logger.info "Geonames request: #{url}" if defined?(Rails)
       options = {
         :open_timeout => 60,
         :read_timeout => 60
@@ -273,7 +275,7 @@ module Geonames
       # here for backwards compatibility
       WebService.find_nearby_wikipedia( hashes )
     end
-    
+
     def WebService.find_nearby_wikipedia( hashes )
       articles = Array.new
 
@@ -316,7 +318,7 @@ module Geonames
       # here for backwards compatibility
       WebService.find_bounding_box_wikipedia( hashes )
     end
-    
+
     def WebService.find_bounding_box_wikipedia( hashes )
       articles = Array.new
 
@@ -353,9 +355,9 @@ module Geonames
     end
 
     def WebService.country_subdivision ( lat, long, radius = 0, maxRows = 1 )
-      
+
       country_subdivisions = Array.new
-      
+
       # maxRows is only implemented in the xml version:
       # http://groups.google.com/group/geonames/browse_thread/thread/f7f1bb2504ed216e
       # Therefore 'type=xml' is added:
@@ -391,12 +393,12 @@ module Geonames
 
     def WebService.country_info(country_code = false)
       url = "/countryInfo?a=a"
-      
+
       url += "&country=#{country_code.to_s}" if country_code
       res = make_request(url)
-      
+
       doc = REXML::Document.new res.body
-      
+
       countries = Array.new
 
       doc.elements.each("geonames/country") do |element|
@@ -471,7 +473,13 @@ module Geonames
       end
 
       if !search_criteria.feature_class.nil?
-        url = url + "&featureClass=" + CGI::escape( search_criteria.feature_class )
+        if search_criteria.feature_class.is_a? String
+          url = url + "&featureClass=" + CGI::escape( search_criteria.feature_class )
+        elsif search_criteria.feature_class.is_a? Array
+          search_criteria.feature_class.each do |f|
+            url += "&featureClass=" + CGI::escape(f)
+          end
+        end
       end
 
       if !search_criteria.feature_codes.nil?
@@ -491,7 +499,7 @@ module Geonames
       if !search_criteria.style.nil?
         url = url + "&style=" + CGI::escape( search_criteria.style )
       end
-      
+
       res = make_request(url)
 
       doc = REXML::Document.new res.body
@@ -506,7 +514,7 @@ module Geonames
 
       return toponym_sr
     end
-    
+
   end
 end
 
