@@ -251,19 +251,43 @@ module Geonames
     end
 
     def WebService.make_request(path_and_query, *args)
-      url = Geonames.base_url + path_and_query
-      url += "&username=#{Geonames.username}" if Geonames.username
-      url += "&token=#{Geonames.token}" if Geonames.token
-      url += "&lang=#{Geonames.lang}"
+      path = path_and_query
+      path += "&username=#{Geonames.username}" if Geonames.username
+      path += "&token=#{Geonames.token}" if Geonames.token
+      path += "&lang=#{Geonames.lang}"
 
-      Rails.logger.info "Geonames request: #{url}" if defined?(Rails)
+      timeout = Geonames.timeout || 60
       options = {
-        :open_timeout => 60,
-        :read_timeout => 60
+        :open_timeout => timeout,
+        :read_timeout => timeout
       }
       options.update(args.last.is_a?(::Hash) ? args.pop : {})
+
+      if Geonames.base_urls
+        make_multiple_requests(Geonames.base_urls, path, options)
+      else
+        make_one_request(Geonames.base_url, path, options)
+      end
+    end
+
+    def self.make_multiple_requests(base_urls, path, options)
+      base_urls.each_with_index do |base_url, i|
+        begin
+          return make_one_request(base_url, path, options)
+        rescue Net::ReadTimeout, Net::OpenTimeout => e
+          raise Timeout::Error if i == (Geonames.base_urls.length - 1)
+          next
+        end
+      end
+    end
+
+    def self.make_one_request(base_url, path, options)
+      url = base_url + path
+      Rails.logger.info "Geonames request: #{url}" if defined?(Rails)
+
       uri = URI.parse(url)
       req = Net::HTTP::Get.new(uri.path + '?' + uri.query)
+
       Net::HTTP.start(uri.host, uri.port) { |http|
         http.read_timeout = options[:read_timeout]
         http.open_timeout = options[:open_timeout]

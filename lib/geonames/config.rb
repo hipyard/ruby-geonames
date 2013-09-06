@@ -1,12 +1,12 @@
 #=============================================================================
 #
-# Copyright 2010 Jan Schwenzien <jan@schwenzien.info> 
+# Copyright 2010 Jan Schwenzien <jan@schwenzien.info>
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may not
 # use this file except in compliance with the License. You may obtain a copy of
-# the License at 
+# the License at
 #
-#  http://www.apache.org/licenses/LICENSE-2.0 
+#  http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
@@ -23,6 +23,8 @@ module Geonames
     @@default_token     = nil
     @@default_base_url  = "http://ws.geonames.org"
     @@default_lang      = "en"
+
+    attr_accessor :base_urls, :timeout
 
     def username
       @username || @@default_username
